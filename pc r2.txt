@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+struct symtab {
+    int lineno;
+    char var[25], dt[25], val[10];
+} sa[20];
+
+void main() {
+    int i = 0, max = 0, line = 0;
+    char s[25], typ[25], gar[] = "garbage";
+    
+    // Hardcoded input lines (simulating the file contents)
+    const char* lines[] = {
+        "int a = 10, b, c = 20;",
+        "float x = 5.5, y, z = 3.14;",
+        "char ch = 'A', initial = 'D';"
+    };
+    int num_lines = sizeof(lines) / sizeof(lines[0]);
+
+    printf("\n\nSYMBOL TABLE MANAGEMENT\n\n");
+    printf("Variable\tDatatype\tLine.no.\t\tValue\n");
+
+    for (int n = 0; n < num_lines; n++) {
+        line++; // Increment line number for each line
+        const char* current_line = lines[n];
+        sscanf(current_line, "%s", s);
+
+        if (strcmp(s, "int") == 0 || strcmp(s, "float") == 0) {
+            strcpy(typ, s);
+
+            const char* ptr = current_line + strlen(typ); // Move pointer to parse the rest
+            while (*ptr && *ptr != ';') {
+                i++;
+                max = i;
+                sa[i].lineno = line;
+
+                sscanf(ptr, "%s", s); // Read variable name
+                strcpy(sa[i].var, s);
+                strcpy(sa[i].dt, typ);
+
+                ptr += strlen(s);
+                if (*ptr == ' ' || *ptr == '=') ptr++;
+
+                if (*ptr == '=') {
+                    ptr++;
+                    sscanf(ptr, "%s", s);
+                    strcpy(sa[i].val, s);
+                    while (*ptr && *ptr != ',' && *ptr != ';') ptr++;
+                } else {
+                    strcpy(sa[i].val, gar);
+                }
+
+                if (*ptr == ',') ptr++; // Move to next variable
+            }
+        } else if (strcmp(s, "char") == 0) {
+            strcpy(typ, s);
+
+            const char* ptr = current_line + strlen(typ);
+            while (*ptr && *ptr != ';') {
+                i++;
+                max = i;
+                sa[i].lineno = line;
+
+                sscanf(ptr, "%s", s); // Read variable name
+                strcpy(sa[i].var, s);
+                strcpy(sa[i].dt, typ);
+
+                ptr += strlen(s);
+                if (*ptr == ' ' || *ptr == '=') ptr++;
+
+                if (*ptr == '=') {
+                    ptr += 2; // Skip '=' and the opening single quote for char
+                    sscanf(ptr, "%c", s);
+                    s[1] = '\0'; // Only one char for char variables
+                    strcpy(sa[i].val, s);
+                    ptr += 3; // Move past the character and the closing single quote
+                }
+                if (*ptr == ',') ptr++; // Move to next variable
+            }
+        }
+    }
+
+    for (i = 1; i <= max; i++) {
+        printf("\n%s\t\t%s\t\t%d\t\t%s\n", sa[i].var, sa[i].dt, sa[i].lineno, sa[i].val);
+    }
+}
